@@ -493,7 +493,8 @@ if( ! tmpl_output_p ){
 
 // Final closeout for Jenkins error code check.
 if( error_intersection_accumulator > 0 ){
-    _die('Exiting with ' + error_intersection_accumulator + ' broken rule(s).');
+    //_die('Exiting with ' + error_intersection_accumulator + ' broken rule(s).');
+    _ll('Exiting with ' + error_intersection_accumulator + ' broken rule(s).');
 }else{
     _ll('Completed with no broken rules :)');
 }
