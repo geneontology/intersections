@@ -1,0 +1,84 @@
+table(id='rulestable' class='table table-striped')
+  thead
+    tr
+      th No.
+      th Rule&nbsp;summary
+      th Description
+      th Pass?
+      th GP&nbspcount
+      th Ann.&nbsp;details
+  tfoot
+    tr
+      th No.
+      th Rule&nbsp;summary
+      th Description
+      th Pass?
+      th GP&nbspcount
+      th Ann.&nbsp;details
+  tbody
+    each rule, index in export_data
+      tr
+        td #{ rule["rule-number"] } 
+        td #{ rule["bio-summary"] }
+        td
+          each tset in rule["rule-terms"]
+            a(href=tset[1]) #{ tset[0] }
+            br
+          each tset in rule["rule-exceptions"]
+            a(href=tset[1])
+              span ! &nbsp; #{ tset[0] }
+            br
+        if rule["pass-p"]
+          td(class="bg-success")
+            span pass
+        else
+          td(class="bg-warning")
+            span fail
+        td
+          a(href=rule['bio-bookmark']) #{ rule["bio-count"] }
+        td
+          if rule['too-large-p']
+            span not available due to size (>100)
+          else
+            if ! rule['ann-summary-items']
+              span -
+            else
+              span all:&nbsp;#{ rule['ann-summary-items'][0] }; exp:&nbsp;#{ rule['ann-summary-items'][1] }; iea:&nbsp;#{ rule['ann-summary-items'][2] }
+              br
+              a(href=rule['ann-bookmark']) annotation&nbsp;link
+          //- td #{ rule['data-field'] } #{ rule['data-type'] } #{ rule['data-categories'] }
+        //- case rule.grade
+        //-   when 'gold'
+        //-     td(style='color:#ffd700;font-size:1.5em;') &#x2605;&nbsp;&#x2605;&nbsp;&#x2605;&nbsp;&#x2605;
+        //-   when 'green'
+        //-     //td(class='bg-success text-white') &#x2605;&nbsp;&#x2605;&nbsp;&#x2605;
+        //-     td
+        //-       span(style="color:green;") &#x2605;&nbsp;&#x2605;&nbsp;&#x2605;
+        //-   when 'yellow'
+        //-     //td(class='bg-warning text-white') &#x2605;&nbsp;&#x2605;
+        //-     td
+        //-       span(style="color:orange;") &#x2605;&nbsp;&#x2605;
+        //-   when 'red'
+        //-     //td(class='bg-danger text-white') &#x2605;
+        //-     td
+        //-       span(style="color:red;") &#x2605;
+        //-   default
+        //-     //td(class='bg-inverse text-white') ?
+        //-     td
+        //-       strong ?
+        //- td #{ rule.description }
+        //- td
+        //-   a(href=rule['license-link']) #{ rule['license-type'] }
+        //- td
+        //-   if rule['license-issues'] && rule['license-issues'].length !== 0
+        //-     dl
+        //-       each issue, index in rule['license-issues']
+        //-         dt
+        //-           // a(href='#criteria-' + issue.criteria) Criteria&nbsp;#{issue.criteria}
+        //-           a(href='#our-criteria') Criteria&nbsp;#{issue.criteria}
+        //-         dd
+        //-           small(class="text-muted") #{ issue.comment }
+        //-   if rule['license-commentary'] && rule['license-commentary'].length !== 0
+        //-     button(class="btn btn-secondary btn-sm" role="button" data-toggle="popover" title="License commentary" data-placement="left" data-content=rule['license-commentary-embeddable']) Commentary
+        //-   else
+        //-     span

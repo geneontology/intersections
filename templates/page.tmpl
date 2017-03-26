@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css" crossorigin="anonymous">
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.0/vue.js"></script> -->
+    <!-- <script type="text/javascript" src="TBNeoBundle.js"></script> -->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-toggleable-md navbar-light bg-faded fixed-top">
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+	<span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand" href="#">
+	<img src="logo.png" height="30" class="d-inline-block align-top" alt="">
+	shared-annotation-check
+      </a>
+      
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="http://reports.geneontology.org/shared-annotation-check" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Links</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#home">Home</a>
+              <a class="dropdown-item" href="#rules-data">Rules check data</a>
+              <a class="dropdown-item" href="https://github.com/geneontology/shared-annotation-check">Community</a>
+              <a class="dropdown-item" href="http://geneontology.org">Gene Ontology</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <!-- start jumbotron -->
+    <div id="home" class="jumbotron">
+      <div class="container">
+	<h1 class="display-3">Shared Annotation Check</h1>
+	<div class="row">
+	  <div class="col-xl-9">
+	    <p>
+	      <a href="http://github.com/geneontology/shared-annotation-check">Tools</a>
+	      and <a href="https://github.com/geneontology/shared-annotation-check/blob/master/rules.txt">rules</a>
+	      for intersections/co-annotation checks in the Gene
+	      Ontology.
+	    </p>
+
+	    <p>
+	      Looked at <strong>{{ rules-number }}</strong> rules.
+	      <br />
+	      Skipped <strong>{{ rules-skipped }}</strong> rules when making annotation summary due to size.
+	    </p>
+	    
+	    <p>
+	      For remaining annotation summary, found <strong>{{ ann-acc-all }}</strong> total erring annotation(s)
+	      with <strong>{{ ann-acc-exp }}</strong> EXP annotation(s)
+	      and <strong>{{ ann-acc-iea }}</strong> IEA annotation(s).
+	    </p>
+	    
+	    <p>
+	      {{#rules-erred-p}}
+	      Exiting with <strong>{{ rules-erred }}</strong> broken rule(s).
+	      {{/rules-erred-p}}
+	      {{^rules-erred-p}}
+	      Completed with no broken rules :)
+	      {{/rules-erred-p}}
+	    </p>
+
+	  </div>
+	  <div class="col-xl-3">
+	    <img class="mx-auto d-block" style="height:124px;" src="logo.png" />
+	  </div>
+	</div>
+      </div>
+    </div>
+    <!-- end jumbotron -->
+    
+    <div class="container">
+
+      <!-- spacer -->
+      <div id="rules-data" style="height:32px;"></div>
+
+      <div class="row">
+
+	<div class="col-xl-12">
+	  <div class="card">
+	    <div class="card-block">
+	      <h4 class="card-title">Rule check data</h4>
+	      <p class="card-text">
+		
+		{{{ htmltablestr }}}
+		
+	      </p>
+	      <p>
+		<a class="btn btn-secondary"
+		   href="https://github.com/geneontology/shared-annotation-check"
+		   role="button">Contact us</a>
+	      </p>
+	    </div>
+	  </div>
+	</div>
+	
+      </div><!-- Done row. -->
+
+      <!-- spacer -->
+      <div style="height:32px;"></div>
+      
+      <div class="row">
+	
+	<div id="final-matter" class="col-xl-12">
+
+	  <p>
+
+	    <small>
+
+	      Copyright © 1999-2017 <a href="http://www.geneontology.org/" title="The Gene Ontology project website">the Gene Ontology</a> (<a href="/page/use-and-license">CC-BY 4.0</a>)
+	      <br />
+	      <a href="/form/contact-go" title="Contact the GO helpdesk">Helpdesk</a> • <a href="/page/go-citation-policy" title="How to cite the GO project">Citation/attribution</a> • <a href="/page/use-and-license" title="Terms of use for the GO project">Terms of use</a>  • <a href="/rss.xml" title="GO News RSS feed">RSS</a>
+	      <br />
+	      Member of the <a href="http://www.obofoundry.org/" rel="external" title="Open Biological and Biomedical Ontologies">Open Biological and Biomedical Ontologies</a>
+	      <br />
+	      The Gene Ontology Consortium is supported by a P41 grant from the National Human Genome Research Institute (NHGRI) [grant <a href="http://projectreporter.nih.gov/project_info_description.cfm?aid=8641714&icde=0" rel="external" title="National Human Genome Research Institute grant 5U41HG002273-14">5U41HG002273-14</a>]. The Gene Ontology Consortium would like to acknowledge the assistance of many more people than can be listed here. Please visit the <a href="/page/go-acknowledgements">acknowledgements page</a> for the full list.
+	    </small>
+	  </p>
+
+	</div>
+
+      </div><!-- Done container. -->
+    
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+      var global_data = {{{ jsondata }}};
+      jQuery(document).ready(function(){
+         console.log('Ready...');
+         jQuery("#rulestable").DataTable(
+                    {autoWidth: true}
+         );
+         console.log('...done.');
+         //{autoWidth: true, "order": [[0, "asc"]]}
+         // For license commentary popups.
+         jQuery(function () {
+            jQuery('[data-toggle="popover"]').popover()
+         });
+      });
+    </script>
+
+  </body>
+  
+</html>

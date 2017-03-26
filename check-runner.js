@@ -3,12 +3,17 @@
 //// Usage like:
 //// : npm install
 //// : node ./check-runner.js -i ./rules.txt
+//// : node ./check-runner.js -i ./rules.txt -o ./docs/index.html
+//// : node ./check-runner.js -i ./test/rules-tiny.txt -o ./docs/index.html
 ////
 
 // General.
 var us = require('underscore');
 var string = require('underscore.string');
 var fs = require("fs");
+//var yaml = require('yamljs');
+var mustache = require('mustache');
+var pug = require('pug');
 
 // Setup public AmiGO API environment.
 //var node_engine = require('bbop-rest-manager').node;
@@ -112,6 +117,16 @@ if( ! in_file ){
     _debug('Will use input rule file: ' + in_file);
 }
 
+// Template output is optional.
+var tmpl_output_p = false;
+var out_file = argv['o'] || argv['out'];
+if( ! out_file ){
+    //_die('Option (o|out) is required.');
+}else{
+    tmpl_output_p = true;
+    _debug('Will use output file: ' + out_file);
+}
+
 ///
 /// Main.
 ///
@@ -195,10 +210,17 @@ each(rule_lines, function(raw_line, index){
 //_debug(intersection_checks);
 //_die('done');
 
+// Collect all data for export.
+var export_data = [];
+
 // Now try the !AND logic tests.
 _debug('Running intersection checks...');
-each(intersection_checks, function(args){    
+each(intersection_checks, function(args, index){
 
+    // Collect data for this intersection.
+    var rcache = {};
+    rcache['rule-number'] = index; // capture
+    
     // Next, setup the manager environment.
     _debug('Parsed rules, setting up manager...');
     var go = new golr_manager(golr_url, gconf, engine, 'sync');
@@ -230,37 +252,66 @@ each(intersection_checks, function(args){
 	    go.get_filter_query_string();
     
     // Report.
+    var export_string = '' +
+	    args['term1'] + ' && ' + args['term2'];
     var report_string = 'Check intersection: ' +
 	    args['term1'] + ' && ' + args['term2'];
     if( args['intersection_exceptions'].length !== 0 ){
+	export_string +=
+	    ' && !(' + args['intersection_exceptions'].join(' || ') + ')';
 	report_string +=
 	    ' && !(' + args['intersection_exceptions'].join(' || ') + ')';
     }
     if( args['gp_exceptions'].length !== 0 ){
+	export_string +=
+	    ' && !(' + args['gp_exceptions'].join(' || ') + ')';
 	report_string +=
 	    ' && !(' + args['gp_exceptions'].join(' || ') + ')';
     }
+    rcache['bio-summary'] = export_string; // capture
     report_string += ' (' + count + ')';
     _ll(report_string);
+
+    rcache['bio-bookmark'] = bookmark; // capture
+    rcache['bio-count'] = count; // capture
     
     // Human readable names.
+    function term_link(t){
+	return 'http://amigo.geneontology.org/amigo/term/' + t;
+    }
+    var exportable_intersection_terms = [
+	[ get_term_name(args['term1']), term_link(args['term1']) ],
+	[ get_term_name(args['term2']), term_link(args['term2']) ]
+    ];
+    var exportable_exception_terms = [];
     var readable_str = '................... "' +
 	    get_term_name(args['term1']) + '", "' +
 	    get_term_name(args['term2']) + '"';
     if( args['intersection_exceptions'].length !== 0 ){
 	readable_str += '; with term exceptions: "' +
 	    us.map(args['intersection_exceptions'],
-		   function(e){ return get_term_name(e); }).join('", "')+'"';
+		   function(e){
+		       exportable_exception_terms.push(
+			   [get_term_name(e), term_link(e)]);
+		       return get_term_name(e);
+		   }).join('", "')+'"';
     }
     if( args['gp_exceptions'].length !== 0 ){
 	readable_str += '; with GP exceptions: "' +
 	    us.map(args['gp_exceptions'],
-		   function(e){ return e; }).join('", "') + '"';
+		   function(e){
+		       exportable_exception_terms.push(
+			   [get_term_name(e), term_link(e)]);
+		       return e;
+		   }).join('", "') + '"';
     }
     _ll(readable_str);
+    rcache['rule-terms'] = exportable_intersection_terms; // capture
+    rcache['rule-exceptions'] = exportable_exception_terms; // capture
     
     // List error or not.
     if( count === 0 ){
+	rcache['pass-p'] = true; // capture
 	_ll('PASS: ' + bookmark);
     }else{
 	
@@ -282,6 +333,7 @@ each(intersection_checks, function(args){
 
 	    if( bioentities.length > 100 ){
 		_ll('Too large for annotation summary: +100');
+		rcache['too-large-p'] = true; // capture
 		rules_skipped++;
 	    }else{
 		
@@ -289,13 +341,15 @@ each(intersection_checks, function(args){
 		var local_exp_accumulator = 0;
 		var local_iea_accumulator = 0;
 
-		// Withing the intersection tests, look at three different aspects
-		// of annotations to help explore what is going on.
+		// Withing the intersection tests, look at three
+		// different aspects of annotations to help explore
+		// what is going on.
 		var ann_bookmark = 'tbd';
 		each(['total', 'exp', 'iea'], function(test_type){
 		    
 		    var go = new golr_manager(golr_url, gconf, engine, 'sync');
-		    go.add_query_filter('document_category', 'annotation', ['*']);
+		    go.add_query_filter('document_category',
+					'annotation', ['*']);
 		    go.set_personality('annotation');
 		    go.debug(false); // I think the default is still on?
 		    go.set_results_count(0); // just want counts
@@ -328,8 +382,9 @@ each(intersection_checks, function(args){
 			go.add_query_filter('evidence_subset_closure_label',
 					    'experimental evidence');
 		    }else if( test_type === 'iea' ){
-			go.add_query_filter('evidence_subset_closure_label',
-					    'evidence used in automatic assertion');
+			go.add_query_filter(
+			    'evidence_subset_closure_label',
+			    'evidence used in automatic assertion');
 		    }
 		    
 		    // Fetch the data and grab the info we want.
@@ -339,7 +394,7 @@ each(intersection_checks, function(args){
 		    // Accumulate the counts separately.
 		    if( test_type === 'total' ){
 			ann_bookmark =
-			    'http://amigo.geneontology.org/amigo/search/annotation?'+ go.get_filter_query_string();
+			    'http://amigo.geneontology.org/amigo/search/annotation?' + go.get_filter_query_string();
 			all_annotation_accumulator += count;
 			local_all_accumulator += count;
 		    }else if( test_type === 'exp' ){
@@ -357,15 +412,26 @@ each(intersection_checks, function(args){
 		});
 
 		// Report.
+		var export_ann_summary_items = [
+		    local_all_accumulator,
+		    local_exp_accumulator,
+		    local_iea_accumulator
+		];
 		var ann_report_string = 'Annotation summary: total (' +
 			local_all_accumulator + '), exp (' +
 			local_exp_accumulator + '), iea (' +
-			local_iea_accumulator+ ')';
+			local_iea_accumulator + ')';
+		rcache['ann-bookmark'] = ann_bookmark; // capture
+		rcache['ann-summary-items'] =
+		    export_ann_summary_items; // capture
 		_ll(ann_report_string + '; ' + ann_bookmark);
 	    }
 
 	})();
     }    
+
+    // Add to collection.
+    export_data.push(rcache);
     
     // Spacing for next "set".
     _ll('');
@@ -381,6 +447,51 @@ _ll('Skipped ' + rules_skipped + ' rules when making annotation summary due to s
 _ll('For remaining annotation summary, found ' + all_annotation_accumulator + ' total erring annotation(s);');
 _ll('with ' + exp_annotation_accumulator + ' EXP annotation(s);');
 _ll('and ' + iea_annotation_accumulator + ' IEA annotation(s).');
+
+///
+/// Publish table to page.
+///
+
+if( ! tmpl_output_p ){
+    _ll('(No reference page output.)');
+}else{
+    _ll('(Create reference page...)');
+    
+    _debug('export_data', export_data);
+    
+    // Pug/Jade for table.
+    var html_table_str = pug.renderFile('./templates/static-table.pug',
+					{"export_data": export_data});
+    _debug(html_table_str);
+
+    // Mustache for final.
+    var template = fs.readFileSync('./templates/page.tmpl', 'utf-8');
+    _debug('template', template);
+
+    // Binary variable for mustache.
+    var rules_erred_p = null;
+    if( error_intersection_accumulator > 0 ){
+	rules_erred_p = true;
+    }
+    
+    var outstr = mustache.render(template, {
+	"jsondata": JSON.stringify(export_data),
+	"htmltablestr": html_table_str,
+	"data": export_data,
+	"rules-number": rule_lines.length,
+	"rules-skipped": rules_skipped,
+	"rules-erred": error_intersection_accumulator,
+	"rules-erred-p": rules_erred_p,
+	"ann-acc-all": all_annotation_accumulator,
+	"ann-acc-exp": exp_annotation_accumulator,
+	"ann-acc-iea": iea_annotation_accumulator
+    });
+    fs.writeFileSync(out_file, outstr);
+
+    _ll('(...output reference page  to: ' + out_file + ')');
+}
+
+// Final closeout for Jenkins error code check.
 if( error_intersection_accumulator > 0 ){
     _die('Exiting with ' + error_intersection_accumulator + ' broken rule(s).');
 }else{
