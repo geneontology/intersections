@@ -142,11 +142,13 @@
       var global_data = {{{ jsondata }}};
       jQuery(document).ready(function(){
          console.log('Ready...');
-         jQuery("#rulestable").DataTable(
-                    {autoWidth: true}
-         );
-         console.log('...done.');
+         jQuery("#rulestable").DataTable({
+            "autoWidth": true,
+            "lengthMenu": [10, 25, 50, 100, 500],
+            "pageLength": 10
+         });
          //{autoWidth: true, "order": [[0, "asc"]]}
+         console.log('...done.');
          // For license commentary popups.
          jQuery(function () {
             jQuery('[data-toggle="popover"]').popover()
