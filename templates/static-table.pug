@@ -18,7 +18,8 @@ table(id='rulestable' class='table table-striped')
   tbody
     each rule, index in export_data
       tr
-        td #{ rule["rule-number"] } 
+        td
+          a(href="https://github.com/geneontology/shared-annotation-check/blob/master/rules.txt#L" + rule["rule-number"]) #{ rule["rule-number"] }
         td #{ rule["bio-summary"] }
         td
           each tset in rule["rule-terms"]
