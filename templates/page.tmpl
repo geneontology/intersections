@@ -66,11 +66,15 @@
 	    
 	    <p>
 	      {{#rules-erred-p}}
-	      Exiting with <strong>{{ rules-erred }}</strong> broken rule(s).
+	      Exited with <strong>{{ rules-erred }}</strong> broken rule(s).
 	      {{/rules-erred-p}}
 	      {{^rules-erred-p}}
 	      Completed with no broken rules :)
 	      {{/rules-erred-p}}
+	    </p>
+
+	    <p>
+	      Compiled and published on {{ published-date }}.
 	    </p>
 
 	  </div>

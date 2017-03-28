@@ -167,44 +167,46 @@ var rule_lines = string.lines(clean_file);
 //_debug(rule_lines);
 each(rule_lines, function(raw_line, index){
 
-    var line = string.trim(raw_line);
-    //_debug('line');
-    //_debug(line);
-    var columns = line.split(/\t/);
-    //_debug('columns');
-    //_debug(columns);
-    
-    // Switch between NO_OVERLAP and logic modes.
-    var term1 = columns[0];
-    var term2 = columns[1];
-    var intersection_exceptions_raw = columns[2];
-    var gp_exceptions_raw = columns[3];
+    if( raw_line && raw_line !== '' ){
+	
+	var line = string.trim(raw_line);
+	//_debug('line');
+	//_debug(line);
+	var columns = line.split(/\t/);
+	//_debug('columns');
+	//_debug(columns);
+	
+	// Switch between NO_OVERLAP and logic modes.
+	var term1 = columns[0];
+	var term2 = columns[1];
+	var intersection_exceptions_raw = columns[2];
+	var gp_exceptions_raw = columns[3];
 
-    // Make sure that it is at least grossly a rule.
-    if( ! term1 || ! term2 ){ _die('Bad rule: ' + raw_line); }
+	// Make sure that it is at least grossly a rule.
+	if( ! term1 || ! term2 ){ _die('Bad rule: ' + raw_line); }
 
-    // Parse logic.
-    var intersection_exceptions = [];
-    if( intersection_exceptions_raw ){
-	intersection_exceptions =
-	    intersection_exceptions_raw.split(/\s*\|\s*/);
+	// Parse logic.
+	var intersection_exceptions = [];
+	if( intersection_exceptions_raw ){
+	    intersection_exceptions =
+		intersection_exceptions_raw.split(/\s*\|\s*/);
+	}
+	var gp_exceptions = [];
+	if( gp_exceptions_raw ){
+	    gp_exceptions =
+		gp_exceptions_raw.split(/\s*\|\s*/);
+	}
+
+	var ln = index + 1;
+	intersection_checks[ln] = {
+	    'line_number': ln,
+	    'raw': raw_line,
+	    'term1': term1,
+	    'term2': term2,
+	    'intersection_exceptions': intersection_exceptions,
+	    'gp_exceptions': gp_exceptions
+	};
     }
-    var gp_exceptions = [];
-    if( gp_exceptions_raw ){
-	gp_exceptions =
-	    gp_exceptions_raw.split(/\s*\|\s*/);
-    }
-
-    var ln = index + 1;
-    intersection_checks[ln] = {
-	'line_number': ln,
-	'raw': raw_line,
-	'term1': term1,
-	'term2': term2,
-	'intersection_exceptions': intersection_exceptions,
-	'gp_exceptions': gp_exceptions
-    };
-
 });
 
 //_debug(intersection_checks);
@@ -442,7 +444,7 @@ each(intersection_checks, function(args, index){
 // I removed the bad exits here because reporting and jenkins-style
 // build success need to be different things.
 // Maybe reconsider once the ontology is fixed.
-_ll('Looked at ' + rule_lines.length + ' rules.');
+_ll('Looked at ' + intersection_checks.length + ' rules.');
 _ll('Skipped ' + rules_skipped + ' rules when making annotation summary due to size.');
 _ll('For remaining annotation summary, found ' + all_annotation_accumulator + ' total erring annotation(s);');
 _ll('with ' + exp_annotation_accumulator + ' EXP annotation(s);');
@@ -478,13 +480,14 @@ if( ! tmpl_output_p ){
 	"jsondata": JSON.stringify(export_data),
 	"htmltablestr": html_table_str,
 	"data": export_data,
-	"rules-number": rule_lines.length,
-	"rules-skipped": rules_skipped,
-	"rules-erred": error_intersection_accumulator,
+	"rules-number": intersection_checks.length || '0',
+	"rules-skipped": rules_skipped || '0',
+	"rules-erred": error_intersection_accumulator || '0',
 	"rules-erred-p": rules_erred_p,
-	"ann-acc-all": all_annotation_accumulator,
-	"ann-acc-exp": exp_annotation_accumulator,
-	"ann-acc-iea": iea_annotation_accumulator
+	"ann-acc-all": all_annotation_accumulator || '0',
+	"ann-acc-exp": exp_annotation_accumulator || '0',
+	"ann-acc-iea": iea_annotation_accumulator || '0',
+	"published-date": (new Date()).toISOString()
     });
     fs.writeFileSync(out_file, outstr);
 
