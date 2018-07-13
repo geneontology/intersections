@@ -29,7 +29,7 @@ engine.method('POST'); // may make some large requests
 var sd = new amigo.data.server();
 //_ll(us.keys(sd));
 //var golr_url = sd.golr_base();
-var golr_url = 'http://golr.geneontology.org/';
+var golr_url = 'http://golr-aux.geneontology.io/solr/';
 var go = new golr_manager(golr_url, gconf, engine, 'sync');
 var linker = new amigo.linker();
 // For getting term info later.
