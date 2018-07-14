@@ -45,7 +45,7 @@ var resty = new rest_engine(response_json);
 var each = us.each;
 
 function _ll(arg1){
-    console.log(arg1); 
+    console.log(arg1);
 }
 
 var debug = false;
@@ -75,9 +75,9 @@ function get_term_name(tid){
 
     if( memo[tid] ){
 	ret = memo[tid];
-    }else{	
+    }else{
 	try {
-	    
+
 	    resty.resource(term_info_url(tid));
 	    var r = resty.fetch();
 	    if( r && r.okay() ){
@@ -87,7 +87,7 @@ function get_term_name(tid){
 		    memo[tid] = ret;
 		}
 	    }
-	    
+
 	}catch(e){
             ret = tid;
 	}
@@ -168,14 +168,14 @@ var rule_lines = string.lines(clean_file);
 each(rule_lines, function(raw_line, index){
 
     if( raw_line && raw_line !== '' ){
-	
+
 	var line = string.trim(raw_line);
 	//_debug('line');
 	//_debug(line);
 	var columns = line.split(/\t/);
 	//_debug('columns');
 	//_debug(columns);
-	
+
 	// Switch between NO_OVERLAP and logic modes.
 	var term1 = columns[0];
 	var term2 = columns[1];
@@ -222,7 +222,7 @@ each(intersection_checks, function(args, index){
     // Collect data for this intersection.
     var rcache = {};
     rcache['rule-number'] = index; // capture
-    
+
     // Next, setup the manager environment.
     _debug('Parsed rules, setting up manager...');
     var go = new golr_manager(golr_url, gconf, engine, 'sync');
@@ -235,24 +235,24 @@ each(intersection_checks, function(args, index){
     // Add the first part of the base intersections.
     go.add_query_filter('isa_partof_closure', args['term1']);
     go.add_query_filter('isa_partof_closure', args['term2']);
-    
+
     // Add all of the items in term exceptions part.
     each(args['intersection_exceptions'], function(exarg){
 	go.add_query_filter('isa_partof_closure', exarg, ['-']);
     });
-    
+
     // Add all of the items in gp exceptions part.
     each(args['gp_exceptions'], function(exarg){
 	go.add_query_filter('bioentity', exarg, ['-']);
     });
-    
+
     // Fetch the data and grab the info we want.
     var resp = go.search();
     var count = resp.total_documents();
     //var bookmark = go.get_state_url();
     var bookmark = 'http://amigo.geneontology.org/amigo/search/bioentity?' +
 	    go.get_filter_query_string();
-    
+
     // Report.
     var export_string = '' +
 	    args['term1'] + ' && ' + args['term2'];
@@ -276,7 +276,7 @@ each(intersection_checks, function(args, index){
 
     rcache['bio-bookmark'] = bookmark; // capture
     rcache['bio-count'] = count; // capture
-    
+
     // Human readable names.
     function term_link(t){
 	return 'http://amigo.geneontology.org/amigo/term/' + t;
@@ -310,13 +310,13 @@ each(intersection_checks, function(args, index){
     _ll(readable_str);
     rcache['rule-terms'] = exportable_intersection_terms; // capture
     rcache['rule-exceptions'] = exportable_exception_terms; // capture
-    
+
     // List error or not.
     if( count === 0 ){
 	rcache['pass-p'] = true; // capture
 	_ll('PASS: ' + bookmark);
     }else{
-	
+
 	(function(){
 
 	    error_intersection_accumulator++;
@@ -338,7 +338,7 @@ each(intersection_checks, function(args, index){
 		rcache['too-large-p'] = true; // capture
 		rules_skipped++;
 	    }else{
-		
+
 		var local_all_accumulator = 0;
 		var local_exp_accumulator = 0;
 		var local_iea_accumulator = 0;
@@ -348,14 +348,14 @@ each(intersection_checks, function(args, index){
 		// what is going on.
 		var ann_bookmark = 'tbd';
 		each(['total', 'exp', 'iea'], function(test_type){
-		    
+
 		    var go = new golr_manager(golr_url, gconf, engine, 'sync');
 		    go.add_query_filter('document_category',
 					'annotation', ['*']);
 		    go.set_personality('annotation');
 		    go.debug(false); // I think the default is still on?
 		    go.set_results_count(0); // just want counts
-		    
+
 		    // Pin current bioentity.
 		    var additional = '';
 		    if( ! us.isEmpty(args['intersection_exceptions']) ){
@@ -368,14 +368,14 @@ each(intersection_checks, function(args, index){
 			    args['term1'] + '" OR "' +
 			    args['term2'] + '")' +
 			    additional +')';
-		    
+
 		    go.add_query_filter('isa_partof_closure', qstr);
 		    //_ll('&fq=isa_partof_closure:' + qstr);
-		    
+
 		    var bstr = '("' + bioentities.join('" OR "') + '")';
 		    go.add_query_filter('bioentity', bstr);
 		    //_ll('&fq=bioentity:' + bstr);
-		    
+
 		    // Depending on our current type, add different evidence
 		    // filters, or none at all.
 		    if( test_type === 'total' ){
@@ -388,7 +388,7 @@ each(intersection_checks, function(args, index){
 			    'evidence_subset_closure_label',
 			    'evidence used in automatic assertion');
 		    }
-		    
+
 		    // Fetch the data and grab the info we want.
 		    var resp = go.search();
 		    var count = resp.total_documents();
@@ -406,7 +406,7 @@ each(intersection_checks, function(args, index){
 			iea_annotation_accumulator += count;
 			local_iea_accumulator += count;
 		    }
-		    
+
 		    // // Report.
 		    // var report_string = 'Annotations ('+test_type+'): ' + count;
 		    // _ll(report_string);
@@ -430,11 +430,11 @@ each(intersection_checks, function(args, index){
 	    }
 
 	})();
-    }    
+    }
 
     // Add to collection.
     export_data.push(rcache);
-    
+
     // Spacing for next "set".
     _ll('');
 
@@ -444,7 +444,7 @@ each(intersection_checks, function(args, index){
 // I removed the bad exits here because reporting and jenkins-style
 // build success need to be different things.
 // Maybe reconsider once the ontology is fixed.
-_ll('Looked at ' + intersection_checks.length + ' rules.');
+_ll('Looked at ' + (us.keys(intersection_checks)).length + ' rules.');
 _ll('Skipped ' + rules_skipped + ' rules when making annotation summary due to size.');
 _ll('For remaining annotation summary, found ' + all_annotation_accumulator + ' total erring annotation(s);');
 _ll('with ' + exp_annotation_accumulator + ' EXP annotation(s);');
@@ -458,9 +458,9 @@ if( ! tmpl_output_p ){
     _ll('(No reference page output.)');
 }else{
     _ll('(Create reference page...)');
-    
+
     _debug('export_data', export_data);
-    
+
     // Pug/Jade for table.
     var html_table_str = pug.renderFile('./templates/static-table.pug',
 					{"export_data": export_data});
@@ -475,12 +475,12 @@ if( ! tmpl_output_p ){
     if( error_intersection_accumulator > 0 ){
 	rules_erred_p = true;
     }
-    
+
     var outstr = mustache.render(template, {
 	"jsondata": JSON.stringify(export_data),
 	"htmltablestr": html_table_str,
 	"data": export_data,
-	"rules-number": intersection_checks.length || '0',
+	"rules-number": (us.keys(intersection_checks)).length || '0',
 	"rules-skipped": rules_skipped || '0',
 	"rules-erred": error_intersection_accumulator || '0',
 	"rules-erred-p": rules_erred_p,
