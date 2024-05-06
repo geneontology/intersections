@@ -31,7 +31,7 @@ var sd = new amigo.data.server();
 //var golr_url = sd.golr_base();
 // Change due to https://github.com/geneontology/shared-annotation-check/issues/6
 //var golr_url = 'http://golr-aux.geneontology.io/solr/select';
-var golr_url = 'http://golr.geneontology.org/solr/select';
+var golr_url = 'http://golr.geneontology.org/solr/';
 var go = new golr_manager(golr_url, gconf, engine, 'sync');
 var linker = new amigo.linker();
 // For getting term info later.
